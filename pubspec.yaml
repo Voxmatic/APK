@@ -1,0 +1,34 @@
+name: ai_gym_trainer
+description: "Fully offline AI gym trainer with on-device pose tracking, exercise recognition, form feedback and voice coaching."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.5.0
+  go_router: ^18.1.4
+  audioplayers: ^6.8.1
+  path_provider: ^2.1.6
+  shared_preferences: ^2.5.6
+  sqflite: ^2.4.6
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/models/pose/pose_landmarker_lite.task
+    - assets/audio/phrases.json
+    - assets/audio/en/
+    - assets/audio/hi/
+    - assets/exercises/videos/
+    - assets/exercises/animations/
+    - assets/exercises/metadata/

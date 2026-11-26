@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "models": [
+    {
+      "id": "pose_landmarker_lite",
+      "group": "pose",
+      "filename": "pose/pose_landmarker_lite.task",
+      "url": "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+      "sha256": "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
+      "size_bytes": 5777746,
+      "version": "float16/1",
+      "license": "Apache-2.0",
+      "source": "https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker",
+      "required": true
+    },
+    {
+      "id": "pose_landmarker_full",
+      "group": "pose-full",
+      "filename": "pose/pose_landmarker_full.task",
+      "url": "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+      "sha256": null,
+      "size_bytes": null,
+      "version": "float16/1",
+      "license": "Apache-2.0",
+      "source": "https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker",
+      "required": false,
+      "note": "Optional fallback. Hash is pinned on first verified download."
+    },
+    {
+      "id": "qwen35_08b_q4_0",
+      "group": "llm",
+      "filename": "llm/Qwen3.5-0.8B-Q4_0.gguf",
+      "url": "https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_0.gguf?download=true",
+      "sha256": null,
+      "size_bytes": 563036064,
+      "version": "Qwen3.5-0.8B Q4_0",
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/Qwen/Qwen3.5-0.8B",
+      "required": false,
+      "note": "Optional. Hash is pinned on first verified download."
+    }
+  ]
+}

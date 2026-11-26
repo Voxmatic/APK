@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "exercises": [
+    {
+      "id": "squat",
+      "name_key": "squat",
+      "status": "IMPLEMENTED",
+      "target_muscles": ["quadriceps", "glutes", "hamstrings"],
+      "camera_view": "front",
+      "demo": "assets/exercises/videos/squat_front.mp4",
+      "ghost": "assets/exercises/animations/squat_3d.json",
+      "key_angles": {"knee": [95, 180], "hip": [60, 180], "trunk_tilt_max": 34},
+      "errors": ["knees_collapsing_inward", "insufficient_depth", "trunk_lean", "slow_movement"]
+    },
+    {
+      "id": "pushup",
+      "name_key": "pushup",
+      "status": "IMPLEMENTED",
+      "target_muscles": ["pectorals", "triceps", "deltoids"],
+      "camera_view": "side",
+      "demo": "assets/exercises/videos/pushup_side.mp4",
+      "key_angles": {"elbow": [85, 170], "body_tilt_max": 0.24},
+      "errors": ["hip_sag", "insufficient_depth", "incorrect_body_alignment"]
+    },
+    {
+      "id": "bicep_curl",
+      "name_key": "bicep_curl",
+      "status": "IN_PROGRESS",
+      "camera_view": "front"
+    },
+    {
+      "id": "lunge",
+      "name_key": "lunge",
+      "status": "NOT_STARTED",
+      "camera_view": "front"
+    },
+    {
+      "id": "shoulder_press",
+      "name_key": "shoulder_press",
+      "status": "NOT_STARTED",
+      "camera_view": "front"
+    },
+    {
+      "id": "plank",
+      "name_key": "plank",
+      "status": "NOT_STARTED",
+      "camera_view": "side"
+    }
+  ]
+}
