@@ -16,9 +16,16 @@ class SummaryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = AppStrings(ref.watch(settingsProvider));
     final state = ref.watch(workoutControllerProvider);
-    final minutes = (state.startedAtMs == 0 ? 0 : DateTime.now().millisecondsSinceEpoch - state.startedAtMs) ~/ 60000;
+    final minutes =
+        (state.startedAtMs == 0
+            ? 0
+            : DateTime.now().millisecondsSinceEpoch - state.startedAtMs) ~/
+        60000;
     return Scaffold(
-      appBar: AppBar(title: Text(s.get('summary')), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: Text(s.get('summary')),
+        automaticallyImplyLeading: false,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -32,27 +39,55 @@ class SummaryScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _Stat(label: s.get('reps'), value: '${state.reps}'),
-                      _Stat(label: s.get('sets'), value: '${state.sets}'),
-                      _Stat(label: s.get('duration'), value: '${minutes}m'),
+                      _Stat(
+                        label: s.get('sets'),
+                        value: '${state.setsCompleted}',
+                      ),
+                      _Stat(
+                        label: s.get('duration'),
+                        value: state.durationMs > 0
+                            ? '${state.durationMs ~/ 60000}m'
+                            : '${minutes}m',
+                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              Text(s.get('privacy'), style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              Text(
+                s.get('privacy'),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12,
+                ),
+              ),
               const SizedBox(height: 8),
               if (state.formEvents.isEmpty)
-                const Text('No form corrections recorded.', style: TextStyle(color: AppColors.success)),
-              ...state.formEvents.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline, color: AppColors.warning, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(s.formError(e.error.wireName), style: const TextStyle(fontSize: 13))),
-                      ],
-                    ),
-                  )),
+                const Text(
+                  'No form corrections recorded.',
+                  style: TextStyle(color: AppColors.success),
+                ),
+              ...state.formEvents.map(
+                (e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        color: AppColors.warning,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          s.formError(e.error.wireName),
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const Spacer(),
               FilledButton(
                 onPressed: () => context.go('/home'),
@@ -73,9 +108,19 @@ class _Stat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        children: [
-          Text(value, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppColors.primary)),
-          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-        ],
-      );
+    children: [
+      Text(
+        value,
+        style: const TextStyle(
+          fontSize: 30,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+      ),
+      Text(
+        label,
+        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+      ),
+    ],
+  );
 }

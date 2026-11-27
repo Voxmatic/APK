@@ -47,7 +47,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 const Icon(Icons.wifi_off, size: 14, color: AppColors.primary),
                 const SizedBox(width: 5),
-                Text(s.get('offline_badge'), style: const TextStyle(fontSize: 11, color: AppColors.primary)),
+                Text(
+                  s.get('offline_badge'),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.primary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -60,9 +66,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 18),
-              Text(s.get('welcome'), style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                s.get('welcome'),
+                style: Theme.of(context).textTheme.headlineMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 6),
-              Text(s.get('subtitle'), style: const TextStyle(color: AppColors.textMuted)),
+              Text(
+                s.get('subtitle'),
+                style: const TextStyle(color: AppColors.textMuted),
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 height: 180,
@@ -79,10 +92,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.self_improvement, size: 58, color: AppColors.primary.withOpacity(0.9)),
+                        Icon(
+                          Icons.self_improvement,
+                          size: 58,
+                          color: AppColors.primary.withOpacity(0.9),
+                        ),
                         const SizedBox(height: 10),
-                        Text('${_history.length} sessions · $totalReps reps',
-                            style: const TextStyle(color: AppColors.text, fontSize: 16, fontWeight: FontWeight.w600)),
+                        Text(
+                          '${_history.length} sessions · $totalReps reps',
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -90,7 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const Spacer(),
               FilledButton.icon(
-                onPressed: () => context.go('/library'),
+                onPressed: () => context.go('/plans'),
                 icon: const Icon(Icons.play_arrow_rounded),
                 label: Text(s.get('start_workout')),
               ),
@@ -103,7 +126,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   foregroundColor: AppColors.text,
                   side: const BorderSide(color: AppColors.surfaceAlt),
                   minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ],

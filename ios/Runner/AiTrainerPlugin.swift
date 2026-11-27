@@ -19,11 +19,13 @@ final class AiTrainerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, AVCa
   private var eventSink: FlutterEventSink?
   private var captureSession: AVCaptureSession?
   private var previewLayer: AVCaptureVideoPreviewLayer?
+  private weak var previewContainer: UIView?
   private var landmarker: PoseLandmarker?
   private var timestamp: UInt64 = 0
   private let sessionQueue = DispatchQueue(label: "ai.gym.trainer.camera")
   private var running = false
   private var lastInferenceMs: Double = 0
+  private let systemHandler = SystemEventStreamHandler()
 
   static func register(with registrar: FlutterPluginRegistrar) {
     let instance = AiTrainerPlugin()
@@ -31,6 +33,8 @@ final class AiTrainerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, AVCa
     registrar.addMethodCallDelegate(instance, channel: channel)
     let eventChannel = FlutterEventChannel(name: instance.eventName, binaryMessenger: registrar.messenger())
     eventChannel.setStreamHandler(instance)
+    let systemChannel = FlutterEventChannel(name: "ai_gym_trainer/system", binaryMessenger: registrar.messenger())
+    systemChannel.setStreamHandler(instance.systemHandler)
     registrar.register(AiTrainerPreviewFactory(viewProvider: instance), withId: instance.viewType)
   }
 
@@ -97,18 +101,44 @@ final class AiTrainerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, AVCa
     return nil
   }
 
+  /// The platform view calls this as soon as it exists. The preview layer is
+  /// attached only here, so a late `camera.start` cannot target a dead view.
+  func attachPreviewContainer(_ view: UIView) {
+    previewContainer = view
+    guard let layer = previewLayer else { return }
+    layer.frame = view.bounds
+    if layer.superlayer !== view.layer {
+      view.layer.addSublayer(layer)
+    }
+  }
+
+  func refreshPreviewLayerFrame(_ bounds: CGRect) {
+    previewLayer?.frame = bounds
+  }
+
+  private func emitSystemEvent(_ type: String, granted: Bool? = nil, phase: String? = nil, message: String = "") {
+    var payload: [String: Any] = ["type": type, "message": message]
+    if let granted { payload["granted"] = granted }
+    if let phase { payload["phase"] = phase }
+    systemHandler.sink?(payload)
+  }
+
   // MARK: - Camera
 
   private func requestCameraPermission(result: @escaping FlutterResult) {
     switch AVCaptureDevice.authorizationStatus(for: .video) {
     case .authorized:
-      result(["granted": true])
+      result(["ok": true, "granted": true, "pending": false])
     case .notDetermined:
       AVCaptureDevice.requestAccess(for: .video) { granted in
-        DispatchQueue.main.async { result(["granted": granted]) }
+        DispatchQueue.main.async { [weak self] in
+          self?.emitSystemEvent("permission", granted: granted)
+          result(["ok": true, "granted": granted, "pending": false])
+        }
       }
     default:
-      result(["granted": false])
+      emitSystemEvent("permission", granted: false, message: "Camera access denied")
+      result(["ok": false, "code": "PERMISSION_DENIED", "granted": false])
     }
   }
 
@@ -126,6 +156,10 @@ final class AiTrainerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, AVCa
     captureSession = session
     previewLayer = AVCaptureVideoPreviewLayer(session: session)
     previewLayer?.videoGravity = .resizeAspectFill
+    if let container = previewContainer, let layer = previewLayer {
+      layer.frame = container.bounds
+      container.layer.addSublayer(layer)
+    }
     initializePose()
   }
 
@@ -226,15 +260,38 @@ private final class AiTrainerPreviewFactory: NSObject, FlutterPlatformViewFactor
   }
 }
 
-private final class AiTrainerPreviewView: NSObject, FlutterPlatformView {
-  private let container = UIView()
+private final class AiTrainerPreviewView: UIView, FlutterPlatformView {
+  private weak var provider: AiTrainerPlugin?
 
   init(frame: CGRect, provider: AiTrainerPlugin?) {
-    super.init()
-    container.frame = frame
-    // The preview layer is attached on the macOS build path once the plugin's
-    // previewLayer is available; this file is source-prepared only on Linux.
+    self.provider = provider
+    super.init(frame: frame)
+    backgroundColor = .black
+    provider?.attachPreviewContainer(self)
   }
 
-  func view() -> UIView { container }
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) is not used by Flutter platform views")
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    provider?.refreshPreviewLayerFrame(bounds)
+  }
+
+  func view() -> UIView { self }
+}
+
+private final class SystemEventStreamHandler: NSObject, FlutterStreamHandler {
+  var sink: FlutterEventSink?
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    sink = events
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    sink = nil
+    return nil
+  }
 }
