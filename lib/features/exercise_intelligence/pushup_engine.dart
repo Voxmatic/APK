@@ -9,11 +9,16 @@ import 'events.dart';
 
 class PushUpEngine {
   static const _required = <int>[
-    LandmarkIndex.leftShoulder, LandmarkIndex.rightShoulder,
-    LandmarkIndex.leftElbow, LandmarkIndex.rightElbow,
-    LandmarkIndex.leftWrist, LandmarkIndex.rightWrist,
-    LandmarkIndex.leftHip, LandmarkIndex.rightHip,
-    LandmarkIndex.leftAnkle, LandmarkIndex.rightAnkle,
+    LandmarkIndex.leftShoulder,
+    LandmarkIndex.rightShoulder,
+    LandmarkIndex.leftElbow,
+    LandmarkIndex.rightElbow,
+    LandmarkIndex.leftWrist,
+    LandmarkIndex.rightWrist,
+    LandmarkIndex.leftHip,
+    LandmarkIndex.rightHip,
+    LandmarkIndex.leftAnkle,
+    LandmarkIndex.rightAnkle,
   ];
 
   MovementPhase phase = MovementPhase.ready;
@@ -34,7 +39,12 @@ class PushUpEngine {
     final visibility = Biomechanics.visibility(frame, _required);
     confidence = visibility;
     if (visibility < 0.5) {
-      _emitOnce(FormError.lowCameraConfidence, frame.timestampMs, visibility, events);
+      _emitOnce(
+        FormError.lowCameraConfidence,
+        frame.timestampMs,
+        visibility,
+        events,
+      );
       return events;
     }
 
@@ -62,14 +72,24 @@ class PushUpEngine {
       frame.get(LandmarkIndex.rightAnkle),
     );
     if (angle.isNaN || shoulder == null || hip == null || ankle == null) {
-      _emitOnce(FormError.lowCameraConfidence, frame.timestampMs, visibility, events);
+      _emitOnce(
+        FormError.lowCameraConfidence,
+        frame.timestampMs,
+        visibility,
+        events,
+      );
       return events;
     }
 
     // Body must be approximately horizontal before a rep can be accepted.
     final bodyTilt = (shoulder.y - ankle.y).abs();
     if (bodyTilt > 0.24) {
-      _emitOnce(FormError.incorrectBodyAlignment, frame.timestampMs, visibility, events);
+      _emitOnce(
+        FormError.incorrectBodyAlignment,
+        frame.timestampMs,
+        visibility,
+        events,
+      );
       _resetSequence();
       return events;
     }
@@ -90,20 +110,23 @@ class PushUpEngine {
     if (_inPlank && angle >= 155) {
       if (_sawDescent && _reachedBottom) {
         repCount++;
-        events.add(RepCompletedEvent(
-          exercise: ExerciseId.pushup,
-          timestampMs: timestamp,
-          repCount: repCount,
-          phase: MovementPhase.standing,
-          confidence: math.min(visibility, 0.98),
-        ));
+        events.add(
+          RepCompletedEvent(
+            exercise: ExerciseId.pushup,
+            timestampMs: timestamp,
+            repCount: repCount,
+            phase: MovementPhase.standing,
+            confidence: math.min(visibility, 0.98),
+          ),
+        );
         _resetSequence();
       } else if (_sawDescent) {
         _emitOnce(FormError.insufficientDepth, timestamp, visibility, events);
         _resetSequence();
       }
       _setPhase(MovementPhase.standing, timestamp, visibility, events);
-    } else if (angle <= 140 && (!_sawDescent || previous.isNaN || previous >= 150)) {
+    } else if (angle <= 140 &&
+        (!_sawDescent || previous.isNaN || previous >= 150)) {
       _sawDescent = true;
       _minAngle = angle;
       _setPhase(MovementPhase.descending, timestamp, visibility, events);
@@ -117,7 +140,9 @@ class PushUpEngine {
       _setPhase(MovementPhase.ascending, timestamp, visibility, events);
     }
 
-    if (dt > 0 && !previous.isNaN && (angle - previous).abs() / (dt / 1000) < 6) {
+    if (dt > 0 &&
+        !previous.isNaN &&
+        (angle - previous).abs() / (dt / 1000) < 6) {
       _stallSince ??= timestamp;
       if (timestamp - _stallSince! > 1200 && phase != MovementPhase.standing) {
         _emitOnce(FormError.slowMovement, timestamp, visibility, events);
@@ -134,7 +159,8 @@ class PushUpEngine {
     PoseLandmark b,
     PoseLandmark point,
   ) {
-    final t = ((point.x - a.x) * (b.x - a.x) + (point.y - a.y) * (b.y - a.y)) /
+    final t =
+        ((point.x - a.x) * (b.x - a.x) + (point.y - a.y) * (b.y - a.y)) /
         math.max((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y), 1e-9);
     final lineY = a.y + (b.y - a.y) * t.clamp(0.0, 1.0);
     return point.y - lineY;
@@ -148,12 +174,14 @@ class PushUpEngine {
   ) {
     if (phase == next) return;
     phase = next;
-    events.add(PhaseChangedEvent(
-      exercise: ExerciseId.pushup,
-      timestampMs: timestamp,
-      phase: next,
-      confidence: visibility,
-    ));
+    events.add(
+      PhaseChangedEvent(
+        exercise: ExerciseId.pushup,
+        timestampMs: timestamp,
+        phase: next,
+        confidence: visibility,
+      ),
+    );
   }
 
   void _emitOnce(
@@ -165,13 +193,15 @@ class PushUpEngine {
     final last = _lastErrorAt[error];
     if (last != null && timestamp - last < 2500) return;
     _lastErrorAt[error] = timestamp;
-    events.add(FormCorrectionEvent(
-      exercise: ExerciseId.pushup,
-      timestampMs: timestamp,
-      error: error,
-      severity: error == FormError.lowCameraConfidence ? 'info' : 'warning',
-      confidence: visibility,
-    ));
+    events.add(
+      FormCorrectionEvent(
+        exercise: ExerciseId.pushup,
+        timestampMs: timestamp,
+        error: error,
+        severity: error == FormError.lowCameraConfidence ? 'info' : 'warning',
+        confidence: visibility,
+      ),
+    );
   }
 
   void _resetSequence() {
@@ -180,6 +210,20 @@ class PushUpEngine {
     _reachedBottom = false;
     _minAngle = 180;
     _stallSince = null;
+  }
+
+  /// Starts a new set without discarding accumulated session state.
+  void resetForNextSet() {
+    repCount = 0;
+    _resetSequence();
+    lastElbowAngle = double.nan;
+    _lastTimestamp = null;
+    _setPhase(
+      MovementPhase.standing,
+      DateTime.now().millisecondsSinceEpoch,
+      confidence,
+      [],
+    );
   }
 
   static double _average(double a, double b) {

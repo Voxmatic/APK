@@ -22,7 +22,9 @@ void main() {
     final engine = SquatEngine();
     final all = <ExerciseEvent>[];
     for (var i = 0; i < 6; i++) {
-      all.addAll(engine.update(squatFrame(depth: i.isEven ? 0 : 0.2, t: i * 100)));
+      all.addAll(
+        engine.update(squatFrame(depth: i.isEven ? 0 : 0.2, t: i * 100)),
+      );
     }
     expect(all.whereType<RepCompletedEvent>(), isEmpty);
     expect(engine.repCount, 0);
@@ -32,7 +34,9 @@ void main() {
     final engine = SquatEngine();
     for (var rep = 0; rep < 3; rep++) {
       for (final depth in [0.0, 0.7, 1.0, 0.7, 0.0]) {
-        engine.update(squatFrame(depth: depth, t: rep * 500 + (depth * 100).round()));
+        engine.update(
+          squatFrame(depth: depth, t: rep * 500 + (depth * 100).round()),
+        );
       }
     }
     expect(engine.repCount, 3);

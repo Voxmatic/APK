@@ -30,14 +30,21 @@ class CoachEngine {
   CoachInstruction? get current => _current;
 
   /// Process an exercise event and return an instruction when one should be spoken.
-  CoachInstruction? process(ExerciseEvent event, {bool userReportedPain = false}) {
+  CoachInstruction? process(
+    ExerciseEvent event, {
+    bool userReportedPain = false,
+  }) {
     if (userReportedPain) {
-      return _emit(const CoachInstruction(
-        id: 'pain_stop',
-        phraseKey: 'pain_stop',
-        priority: 100,
-        stopWorkout: true,
-      ), event.timestampMs, force: true);
+      return _emit(
+        const CoachInstruction(
+          id: 'pain_stop',
+          phraseKey: 'pain_stop',
+          priority: 100,
+          stopWorkout: true,
+        ),
+        event.timestampMs,
+        force: true,
+      );
     }
 
     if (event is FormCorrectionEvent) {
@@ -47,26 +54,35 @@ class CoachEngine {
 
     if (event is RepCompletedEvent) {
       if (event.repCount % 5 == 0 && event.repCount > 0) {
-        return _emit(const CoachInstruction(
-          id: 'excellent',
-          phraseKey: 'excellent',
-          priority: 15,
-        ), event.timestampMs);
+        return _emit(
+          const CoachInstruction(
+            id: 'excellent',
+            phraseKey: 'excellent',
+            priority: 15,
+          ),
+          event.timestampMs,
+        );
       }
-      return _emit(const CoachInstruction(
-        id: 'good_rep',
-        phraseKey: 'good_rep',
-        priority: 10,
-      ), event.timestampMs);
+      return _emit(
+        const CoachInstruction(
+          id: 'good_rep',
+          phraseKey: 'good_rep',
+          priority: 10,
+        ),
+        event.timestampMs,
+      );
     }
 
     if (event is VisualDemoRequiredEvent) {
-      return _emit(CoachInstruction(
-        id: 'show_demo',
-        phraseKey: 'show_demo',
-        priority: 45,
-        visualDemoId: event.demoId,
-      ), event.timestampMs);
+      return _emit(
+        CoachInstruction(
+          id: 'show_demo',
+          phraseKey: 'show_demo',
+          priority: 45,
+          visualDemoId: event.demoId,
+        ),
+        event.timestampMs,
+      );
     }
 
     return null;
@@ -124,7 +140,11 @@ class CoachEngine {
     }
   }
 
-  CoachInstruction? _emit(CoachInstruction instruction, int timestamp, {bool force = false}) {
+  CoachInstruction? _emit(
+    CoachInstruction instruction,
+    int timestamp, {
+    bool force = false,
+  }) {
     final last = _lastEmittedAt[instruction.id];
     if (!force && last != null && timestamp - last < cooldownMs) return null;
     _lastEmittedAt[instruction.id] = timestamp;

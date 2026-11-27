@@ -12,9 +12,18 @@ void main() {
       'timestamp_ms': 12345,
       'landmarks': List.generate(
         33,
-        (i) => {'x': 0.5, 'y': 0.5, 'z': 0.0, 'visibility': 0.9, 'presence': 0.9},
+        (i) => {
+          'x': 0.5,
+          'y': 0.5,
+          'z': 0.0,
+          'visibility': 0.9,
+          'presence': 0.9,
+        },
       ),
-      'worldLandmarks': List.generate(33, (i) => {'x': 0.0, 'y': 0.0, 'z': 0.0}),
+      'worldLandmarks': List.generate(
+        33,
+        (i) => {'x': 0.0, 'y': 0.0, 'z': 0.0},
+      ),
       'inference_ms': 12.3,
     };
     final frame = PoseFrame.fromJson(json);

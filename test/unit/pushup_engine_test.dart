@@ -22,9 +22,14 @@ void main() {
     final engine = PushUpEngine();
     final all = <ExerciseEvent>[];
     for (var i = 0; i < 4; i++) {
-      all.addAll(engine.update(pushupFrame(depth: 0.5, t: i * 100, hipSag: 0.12)));
+      all.addAll(
+        engine.update(pushupFrame(depth: 0.5, t: i * 100, hipSag: 0.12)),
+      );
     }
-    final errors = all.whereType<FormCorrectionEvent>().map((e) => e.error).toSet();
+    final errors = all
+        .whereType<FormCorrectionEvent>()
+        .map((e) => e.error)
+        .toSet();
     expect(errors.contains(FormError.hipSag), isTrue);
   });
 
@@ -35,11 +40,19 @@ void main() {
     final lms = List<PoseLandmark>.from(frame.landmarks);
     for (final idx in [27, 28]) {
       final lm = lms[idx];
-      lms[idx] = PoseLandmark(x: lm.x, y: 0.85, z: 0, visibility: 0.95, presence: 0.95);
+      lms[idx] = PoseLandmark(
+        x: lm.x,
+        y: 0.85,
+        z: 0,
+        visibility: 0.95,
+        presence: 0.95,
+      );
     }
     final events = engine.update(PoseFrame(landmarks: lms, timestampMs: 0));
     expect(
-      events.whereType<FormCorrectionEvent>().any((e) => e.error == FormError.incorrectBodyAlignment),
+      events.whereType<FormCorrectionEvent>().any(
+        (e) => e.error == FormError.incorrectBodyAlignment,
+      ),
       isTrue,
     );
     expect(engine.repCount, 0);

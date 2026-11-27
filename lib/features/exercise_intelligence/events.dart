@@ -5,27 +5,35 @@ enum ExerciseId { squat, pushup, bicepCurl, lunge, shoulderPress, plank }
 
 extension ExerciseIdX on ExerciseId {
   String get wireName => switch (this) {
-        ExerciseId.squat => 'squat',
-        ExerciseId.pushup => 'pushup',
-        ExerciseId.bicepCurl => 'bicep_curl',
-        ExerciseId.lunge => 'lunge',
-        ExerciseId.shoulderPress => 'shoulder_press',
-        ExerciseId.plank => 'plank',
-      };
+    ExerciseId.squat => 'squat',
+    ExerciseId.pushup => 'pushup',
+    ExerciseId.bicepCurl => 'bicep_curl',
+    ExerciseId.lunge => 'lunge',
+    ExerciseId.shoulderPress => 'shoulder_press',
+    ExerciseId.plank => 'plank',
+  };
 }
 
-enum MovementPhase { ready, standing, descending, bottom, ascending, incomplete, resting }
+enum MovementPhase {
+  ready,
+  standing,
+  descending,
+  bottom,
+  ascending,
+  incomplete,
+  resting,
+}
 
 extension MovementPhaseX on MovementPhase {
   String get wireName => switch (this) {
-        MovementPhase.ready => 'ready',
-        MovementPhase.standing => 'standing',
-        MovementPhase.descending => 'descent',
-        MovementPhase.bottom => 'bottom',
-        MovementPhase.ascending => 'ascent',
-        MovementPhase.incomplete => 'incomplete',
-        MovementPhase.resting => 'resting',
-      };
+    MovementPhase.ready => 'ready',
+    MovementPhase.standing => 'standing',
+    MovementPhase.descending => 'descent',
+    MovementPhase.bottom => 'bottom',
+    MovementPhase.ascending => 'ascent',
+    MovementPhase.incomplete => 'incomplete',
+    MovementPhase.resting => 'resting',
+  };
 }
 
 enum FormError {
@@ -41,15 +49,15 @@ enum FormError {
 
 extension FormErrorX on FormError {
   String get wireName => switch (this) {
-        FormError.none => 'none',
-        FormError.kneesCollapsingInward => 'knees_collapsing_inward',
-        FormError.hipSag => 'hip_sag',
-        FormError.insufficientDepth => 'insufficient_depth',
-        FormError.trunkLean => 'trunk_lean',
-        FormError.lowCameraConfidence => 'low_visibility',
-        FormError.slowMovement => 'slow_movement',
-        FormError.incorrectBodyAlignment => 'incorrect_body_alignment',
-      };
+    FormError.none => 'none',
+    FormError.kneesCollapsingInward => 'knees_collapsing_inward',
+    FormError.hipSag => 'hip_sag',
+    FormError.insufficientDepth => 'insufficient_depth',
+    FormError.trunkLean => 'trunk_lean',
+    FormError.lowCameraConfidence => 'low_visibility',
+    FormError.slowMovement => 'slow_movement',
+    FormError.incorrectBodyAlignment => 'incorrect_body_alignment',
+  };
 }
 
 sealed class ExerciseEvent {
@@ -85,14 +93,14 @@ class RepCompletedEvent extends ExerciseEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'event': eventName,
-        'schema_version': 1,
-        'exercise': exercise.wireName,
-        'rep_count': repCount,
-        'phase': phase.wireName,
-        'confidence': confidence,
-        'timestamp_ms': timestampMs,
-      };
+    'event': eventName,
+    'schema_version': 1,
+    'exercise': exercise.wireName,
+    'rep_count': repCount,
+    'phase': phase.wireName,
+    'confidence': confidence,
+    'timestamp_ms': timestampMs,
+  };
 }
 
 class FormCorrectionEvent extends ExerciseEvent {
@@ -112,14 +120,14 @@ class FormCorrectionEvent extends ExerciseEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'event': eventName,
-        'schema_version': 1,
-        'exercise': exercise.wireName,
-        'error_code': error.wireName,
-        'severity': severity,
-        'confidence': confidence,
-        'timestamp_ms': timestampMs,
-      };
+    'event': eventName,
+    'schema_version': 1,
+    'exercise': exercise.wireName,
+    'error_code': error.wireName,
+    'severity': severity,
+    'confidence': confidence,
+    'timestamp_ms': timestampMs,
+  };
 }
 
 class PhaseChangedEvent extends ExerciseEvent {
@@ -137,13 +145,13 @@ class PhaseChangedEvent extends ExerciseEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'event': eventName,
-        'schema_version': 1,
-        'exercise': exercise.wireName,
-        'phase': phase.wireName,
-        'confidence': confidence,
-        'timestamp_ms': timestampMs,
-      };
+    'event': eventName,
+    'schema_version': 1,
+    'exercise': exercise.wireName,
+    'phase': phase.wireName,
+    'confidence': confidence,
+    'timestamp_ms': timestampMs,
+  };
 }
 
 class VisualDemoRequiredEvent extends ExerciseEvent {
@@ -163,11 +171,11 @@ class VisualDemoRequiredEvent extends ExerciseEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'event': eventName,
-        'schema_version': 1,
-        'exercise': exercise.wireName,
-        'demo_id': demoId,
-        'camera_view': cameraView,
-        'timestamp_ms': timestampMs,
-      };
+    'event': eventName,
+    'schema_version': 1,
+    'exercise': exercise.wireName,
+    'demo_id': demoId,
+    'camera_view': cameraView,
+    'timestamp_ms': timestampMs,
+  };
 }

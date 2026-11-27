@@ -12,10 +12,14 @@ class SquatEngine {
   SquatEngine({this.targetReps = 10});
 
   static const _required = <int>[
-    LandmarkIndex.leftHip, LandmarkIndex.rightHip,
-    LandmarkIndex.leftKnee, LandmarkIndex.rightKnee,
-    LandmarkIndex.leftAnkle, LandmarkIndex.rightAnkle,
-    LandmarkIndex.leftShoulder, LandmarkIndex.rightShoulder,
+    LandmarkIndex.leftHip,
+    LandmarkIndex.rightHip,
+    LandmarkIndex.leftKnee,
+    LandmarkIndex.rightKnee,
+    LandmarkIndex.leftAnkle,
+    LandmarkIndex.rightAnkle,
+    LandmarkIndex.leftShoulder,
+    LandmarkIndex.rightShoulder,
   ];
 
   final int targetReps;
@@ -36,7 +40,12 @@ class SquatEngine {
     final visibility = Biomechanics.visibility(frame, _required);
     confidence = visibility;
     if (visibility < 0.5) {
-      _emitOnce(FormError.lowCameraConfidence, frame.timestampMs, visibility, events);
+      _emitOnce(
+        FormError.lowCameraConfidence,
+        frame.timestampMs,
+        visibility,
+        events,
+      );
       return events;
     }
 
@@ -52,7 +61,12 @@ class SquatEngine {
     );
     final angle = _average(left, right);
     if (angle.isNaN) {
-      _emitOnce(FormError.lowCameraConfidence, frame.timestampMs, visibility, events);
+      _emitOnce(
+        FormError.lowCameraConfidence,
+        frame.timestampMs,
+        visibility,
+        events,
+      );
       return events;
     }
 
@@ -69,20 +83,23 @@ class SquatEngine {
     if (angle >= 158) {
       if (_sawDescent && _reachedBottom) {
         repCount++;
-        events.add(RepCompletedEvent(
-          exercise: ExerciseId.squat,
-          timestampMs: timestamp,
-          repCount: repCount,
-          phase: MovementPhase.standing,
-          confidence: math.min(visibility, 0.98),
-        ));
+        events.add(
+          RepCompletedEvent(
+            exercise: ExerciseId.squat,
+            timestampMs: timestamp,
+            repCount: repCount,
+            phase: MovementPhase.standing,
+            confidence: math.min(visibility, 0.98),
+          ),
+        );
         _resetSequence();
       } else if (_sawDescent) {
         _emitOnce(FormError.insufficientDepth, timestamp, visibility, events);
         _resetSequence();
       }
       _setPhase(MovementPhase.standing, timestamp, visibility, events);
-    } else if (angle <= 150 && (!_sawDescent || previous.isNaN || previous >= 152)) {
+    } else if (angle <= 150 &&
+        (!_sawDescent || previous.isNaN || previous >= 152)) {
       _sawDescent = true;
       _minAngle = angle;
       _setPhase(MovementPhase.descending, timestamp, visibility, events);
@@ -96,7 +113,9 @@ class SquatEngine {
       _setPhase(MovementPhase.ascending, timestamp, visibility, events);
     }
 
-    if (dt > 0 && !previous.isNaN && (angle - previous).abs() / (dt / 1000) < 6) {
+    if (dt > 0 &&
+        !previous.isNaN &&
+        (angle - previous).abs() / (dt / 1000) < 6) {
       _stallSince ??= timestamp;
       if (timestamp - _stallSince! > 1200 && phase != MovementPhase.standing) {
         _emitOnce(FormError.slowMovement, timestamp, visibility, events);
@@ -116,9 +135,15 @@ class SquatEngine {
     if (phase == MovementPhase.descending || phase == MovementPhase.bottom) {
       final left = Biomechanics.kneeAlignment(frame, true);
       final right = Biomechanics.kneeAlignment(frame, false);
-      final collapsed = (!left.isNaN && left < -0.32) || (!right.isNaN && right < -0.32);
+      final collapsed =
+          (!left.isNaN && left < -0.32) || (!right.isNaN && right < -0.32);
       if (collapsed) {
-        _emitOnce(FormError.kneesCollapsingInward, frame.timestampMs, visibility, events);
+        _emitOnce(
+          FormError.kneesCollapsingInward,
+          frame.timestampMs,
+          visibility,
+          events,
+        );
       }
       final tilt = Biomechanics.trunkTilt(frame);
       if (!tilt.isNaN && tilt > 34) {
@@ -135,12 +160,14 @@ class SquatEngine {
   ) {
     if (phase == next) return;
     phase = next;
-    events.add(PhaseChangedEvent(
-      exercise: ExerciseId.squat,
-      timestampMs: timestamp,
-      phase: next,
-      confidence: visibility,
-    ));
+    events.add(
+      PhaseChangedEvent(
+        exercise: ExerciseId.squat,
+        timestampMs: timestamp,
+        phase: next,
+        confidence: visibility,
+      ),
+    );
   }
 
   void _emitOnce(
@@ -152,13 +179,15 @@ class SquatEngine {
     final last = _lastErrorAt[error];
     if (last != null && timestamp - last < 2500) return;
     _lastErrorAt[error] = timestamp;
-    events.add(FormCorrectionEvent(
-      exercise: ExerciseId.squat,
-      timestampMs: timestamp,
-      error: error,
-      severity: error == FormError.lowCameraConfidence ? 'info' : 'warning',
-      confidence: visibility,
-    ));
+    events.add(
+      FormCorrectionEvent(
+        exercise: ExerciseId.squat,
+        timestampMs: timestamp,
+        error: error,
+        severity: error == FormError.lowCameraConfidence ? 'info' : 'warning',
+        confidence: visibility,
+      ),
+    );
   }
 
   void _resetSequence() {
@@ -166,6 +195,20 @@ class SquatEngine {
     _reachedBottom = false;
     _minAngle = 180;
     _stallSince = null;
+  }
+
+  /// Starts a new set without discarding accumulated session state.
+  void resetForNextSet() {
+    repCount = 0;
+    _resetSequence();
+    lastKneeAngle = double.nan;
+    _lastTimestamp = null;
+    _setPhase(
+      MovementPhase.standing,
+      DateTime.now().millisecondsSinceEpoch,
+      confidence,
+      [],
+    );
   }
 
   static double _average(double a, double b) {

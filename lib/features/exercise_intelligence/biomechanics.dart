@@ -36,20 +36,20 @@ class PoseLandmark {
   final double presence;
 
   factory PoseLandmark.fromJson(Map<String, dynamic> json) => PoseLandmark(
-        x: (json['x'] as num?)?.toDouble() ?? 0,
-        y: (json['y'] as num?)?.toDouble() ?? 0,
-        z: (json['z'] as num?)?.toDouble() ?? 0,
-        visibility: (json['visibility'] as num?)?.toDouble() ?? 0,
-        presence: (json['presence'] as num?)?.toDouble() ?? 0,
-      );
+    x: (json['x'] as num?)?.toDouble() ?? 0,
+    y: (json['y'] as num?)?.toDouble() ?? 0,
+    z: (json['z'] as num?)?.toDouble() ?? 0,
+    visibility: (json['visibility'] as num?)?.toDouble() ?? 0,
+    presence: (json['presence'] as num?)?.toDouble() ?? 0,
+  );
 
   Map<String, dynamic> toJson() => {
-        'x': x,
-        'y': y,
-        'z': z,
-        'visibility': visibility,
-        'presence': presence,
-      };
+    'x': x,
+    'y': y,
+    'z': z,
+    'visibility': visibility,
+    'presence': presence,
+  };
 }
 
 class PoseFrame {
@@ -58,14 +58,16 @@ class PoseFrame {
     required this.timestampMs,
     this.worldLandmarks = const [],
     this.inferenceMs = 0,
+    this.error = '',
   });
 
   final List<PoseLandmark> landmarks;
   final List<PoseLandmark> worldLandmarks;
   final int timestampMs;
   final double inferenceMs;
+  final String error;
 
-  bool get hasFullBody => landmarks.length == 33;
+  bool get hasFullBody => landmarks.length == 33 && error.isEmpty;
 
   PoseLandmark? get(int index) =>
       index >= 0 && index < landmarks.length ? landmarks[index] : null;
@@ -84,6 +86,7 @@ class PoseFrame {
       worldLandmarks: world,
       timestampMs: (json['timestamp_ms'] as num?)?.toInt() ?? 0,
       inferenceMs: (json['inference_ms'] as num?)?.toDouble() ?? 0,
+      error: json['error'] as String? ?? '',
     );
   }
 }
@@ -125,14 +128,19 @@ abstract final class Biomechanics {
     var total = 0.0;
     for (final i in indices) {
       final lm = frame.get(i);
-      total += lm == null ? 0 : math.min(lm.visibility, lm.presence == 0 ? 1.0 : lm.presence);
+      total += lm == null
+          ? 0
+          : math.min(lm.visibility, lm.presence == 0 ? 1.0 : lm.presence);
     }
     return total / indices.length;
   }
 
   /// Angle of the trunk away from vertical, degrees. 0 = perfectly upright.
   static double trunkTilt(PoseFrame frame) {
-    final hip = midpoint(frame.get(LandmarkIndex.leftHip), frame.get(LandmarkIndex.rightHip));
+    final hip = midpoint(
+      frame.get(LandmarkIndex.leftHip),
+      frame.get(LandmarkIndex.rightHip),
+    );
     final shoulder = midpoint(
       frame.get(LandmarkIndex.leftShoulder),
       frame.get(LandmarkIndex.rightShoulder),
@@ -144,7 +152,11 @@ abstract final class Biomechanics {
   }
 
   /// Perpendicular distance of [point] from the line a->b, normalized units.
-  static double pointToLineDistance(PoseLandmark a, PoseLandmark b, PoseLandmark point) {
+  static double pointToLineDistance(
+    PoseLandmark a,
+    PoseLandmark b,
+    PoseLandmark point,
+  ) {
     final dx = b.x - a.x;
     final dy = b.y - a.y;
     final length = math.sqrt(dx * dx + dy * dy);
@@ -154,9 +166,15 @@ abstract final class Biomechanics {
 
   /// Signed deviation of the knee from the hip->ankle line (positive = outward).
   static double kneeAlignment(PoseFrame frame, bool left) {
-    final hip = frame.get(left ? LandmarkIndex.leftHip : LandmarkIndex.rightHip);
-    final knee = frame.get(left ? LandmarkIndex.leftKnee : LandmarkIndex.rightKnee);
-    final ankle = frame.get(left ? LandmarkIndex.leftAnkle : LandmarkIndex.rightAnkle);
+    final hip = frame.get(
+      left ? LandmarkIndex.leftHip : LandmarkIndex.rightHip,
+    );
+    final knee = frame.get(
+      left ? LandmarkIndex.leftKnee : LandmarkIndex.rightKnee,
+    );
+    final ankle = frame.get(
+      left ? LandmarkIndex.leftAnkle : LandmarkIndex.rightAnkle,
+    );
     if (hip == null || knee == null || ankle == null) return double.nan;
     final dx = ankle.x - hip.x;
     final dy = ankle.y - hip.y;
