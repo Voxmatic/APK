@@ -1,12 +1,19 @@
 # Model Registry — Offline AI Gym Trainer
 
-Last audit: 2026-11-26. All entries are based on official sources checked on that date.
-Model binaries are **not committed to Git**. They are downloaded explicitly with
-`python3 scripts/download_models.py --group <group>` and verified against this registry.
+Last audit: 2026-11-27. All entries are based on official sources checked on that date.
+The required MediaPipe Lite task is bundled and SHA-256 pinned. Optional artifacts are
+**not downloaded at app start**; the in-app model manager or the desktop downloader
+fetches them only after explicit user action and verifies them against this registry.
 
 ## Status definitions
 
 `NOT_STARTED` · `IN_PROGRESS` · `IMPLEMENTED` · `TESTED` · `VERIFIED_ON_DEVICE` · `BLOCKED`
+
+`assets/models/manifest.json` is the single runtime source of truth. Native
+Kotlin and iOS code pin the Lite SHA-256 independently; JVM unit tests verify
+that the pins match. Every install checks free space, size and SHA-256 before
+registration, and an artifact with no published hash gets pinned on first
+verified download. No silent substitution is permitted.
 
 ---
 
