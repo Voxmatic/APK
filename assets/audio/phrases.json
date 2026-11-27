@@ -22,7 +22,11 @@
     "target": "Your target is ten repetitions per set.",
     "motivate": "You are doing great. Finish strong.",
     "correct_form": "Control the movement. Quality matters more than speed.",
-    "visibility_lost": "I have lost sight of your body. Please step back into view."
+    "visibility_lost": "I have lost sight of your body. Please step back into view.",
+    "trunk_lean": "Keep your chest lifted and your back neutral.",
+    "slow_movement": "Move with control. Slow down slightly.",
+    "incorrect_body_alignment": "Align your body in one straight line from head to heels.",
+    "low_visibility": "I cannot see your full body. Adjust the camera."
   },
   "hi": {
     "welcome": "स्वागत है। आइए शुरू करते हैं।",
@@ -47,6 +51,10 @@
     "target": "आपका लक्ष्य हर सेट में दस दोहराव है।",
     "motivate": "आप बहुत अच्छा कर रहे हैं। अंत तक जारी रखें।",
     "correct_form": "गति को नियंत्रित करें। गति से अधिक गुणवत्ता महत्वपूर्ण है।",
-    "visibility_lost": "मैं आपका शरीर नहीं देख पा रहा। कृपया दृश्य में लौट आएँ।"
+    "visibility_lost": "मैं आपका शरीर नहीं देख पा रहा। कृपया दृश्य में लौट आएँ।",
+    "trunk_lean": "छाती ऊपर रखें और पीठ सीधी रखें।",
+    "slow_movement": "गति को नियंत्रित करें। थोड़ा धीरे चलें।",
+    "incorrect_body_alignment": "सिर से एड़ी तक शरीर को एक सीधी रेखा में रखें।",
+    "low_visibility": "मैं आपका पूरा शरीर नहीं देख पा रहा। कैमरा समायोजित करें।"
   }
 }
