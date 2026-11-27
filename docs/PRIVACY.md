@@ -2,41 +2,51 @@
 
 ## Data that never leaves the device
 
-- Camera frames (raw or processed)
-- Pose landmarks or world landmarks
-- Audio recordings or speech command audio
+- Raw camera frames (never cross into Dart and never uploaded)
+- Pose landmarks and world landmarks
+- Audio recordings or speech-command audio (no ASR is bundled)
 - Workout history, repetitions, form events, coaching events
-- User profile, language, voice preferences
+- Language, voice and visualization preferences
 - Model telemetry or inference stats
 
-No cloud inference endpoint, analytics SDK, crash-upload SDK, remote database, or authentication
-service is included in the application. The only network code in the repository is the explicit
-`scripts/download_models.py` setup tool, which is run by the developer/user on a desktop before use.
+The workout path contains no cloud inference endpoint, analytics SDK,
+crash-upload SDK, remote database, or authentication service. The optional
+model manager makes explicit HTTPS requests **only** after the user enables
+optional downloads and taps Install on a specific artifact. No request is made
+at app start.
 
 ## Data retained on device
 
 | Data | Storage | Encryption |
 |---|---|---|
-| Preferences | `users` / `user_preferences` tables (SQLite) | AES-GCM payload via Android Keystore / iOS Keychain platform channel |
-| Workout sessions and reps | `workout_sessions`, `workout_sets`, `workout_reps` | AES-GCM encrypted JSON payload columns |
-| Form/coach events | `form_events`, `coach_events` | AES-GCM encrypted payload columns |
-| Model metadata | `model_registry` | Plaintext metadata only (no user data) |
+| Preferences (`language`, `voice`, plan, consent) | `SharedPreferences` | Plaintext non-sensitive settings |
+| Workout session fields | `workout_sessions` SQLite table | Indexed metadata only |
+| Workout JSON payload + form events | `encrypted_payload` column | AES-256-GCM envelope via Android Keystore / iOS Keychain |
+| Model install paths and pinned hashes | `SharedPreferences` | Plaintext metadata, no user data |
 | Raw camera footage | **Not saved** | N/A |
 | Audio recordings | **Not saved** | N/A |
 
-Key handling: a device-bound AES-256-GCM key is generated in Android Keystore (or iOS Keychain).
-Ciphertext is stored in SQLite; plaintext is only held in memory while a screen needs it.
+If secure encryption is unavailable, session persistence fails explicitly; the
+app never writes the plaintext workout payload as a fallback.
 
 ## User controls
 
-- Settings → **Export data**: writes an encrypted/plaintext JSON export to app-local storage for user transfer.
-- Settings → **Delete all data**: clears all application tables and cached exports.
-- Settings → **Model management**: install/verify/uninstall models. Updates are user-initiated only.
+- Settings → **Export data**: writes a plaintext JSON export to app-local
+  documents (explicit user action; the file stays on this device).
+- Settings → **Delete all data**: clears all local workout rows and coach events.
+- Settings → **Model manager**: enable consent, install/verify/remove optional
+  artifacts. The bundled pose model cannot be removed.
+- Settings → **Local AI / Speech**: shows the real status of optional features;
+  nothing is enabled merely by opening the screen.
 
 ## Verification checklist (to run on a physical device with network disabled)
 
 1. Enable airplane mode; confirm Wi-Fi and mobile data are off.
-2. Complete a full workout (camera, tracking, reps, voice, demo, summary).
-3. Inspect Android netstat / packet capture: no outbound connections from the app.
+2. Complete onboarding, calibration, a full workout, voice coaching, demo and
+   summary without network access.
+3. Inspect Android netstat / packet capture: no outbound connections from the
+   app during a workout.
 4. Confirm no camera/audio files were written to shared storage.
-5. Delete data and confirm all tables are empty.
+5. Export, inspect, then delete data; confirm history is empty afterwards.
+
+Status: **IMPLEMENTED**, device verification **BLOCKED** (no attached device).

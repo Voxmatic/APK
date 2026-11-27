@@ -2,10 +2,13 @@
 
 ## Guiding constraints
 
-- Camera frames never cross into Dart. Native CameraX (Android) / AVFoundation (iOS) produces frames,
-  MediaPipe Pose Landmarker runs in the native analyzer, and Flutter receives compact JSON events.
-- All safety-critical decisions come from a deterministic engine. The optional LLM cannot override it.
-- No network calls at runtime. The only internet use is the explicit desktop model downloader.
+- Camera frames never cross into Dart. Native CameraX (Android) / AVFoundation
+  (iOS) produces frames, MediaPipe Pose Landmarker runs in the native analyzer,
+  and Flutter receives compact JSON landmark events.
+- All safety-critical decisions come from deterministic biomechanics. The
+  optional LLM cannot override a rep, an angle, a form error or a stop.
+- No network call exists in the workout flow. The only network code is the
+  explicit, consent-gated model installer.
 
 ## Runtime pipeline
 
@@ -13,73 +16,73 @@
 CameraX PreviewView (native platform view)
         | ImageAnalysis (STRATEGY_KEEP_ONLY_LATEST)
         v
-MediaPipe PoseLandmarker LIVE_STREAM (Lite .task, CPU/GPU delegate)
-        | EventChannel: {schema_version, landmarks[33], worldLandmarks[33], confidence, timestamp_ms}
+MediaPipe PoseLandmarker LIVE_STREAM (Lite .task, CPU delegate)
+        | EventChannel ai_gym_trainer/pose: {schema_version, landmarks[33], ...}
         v
-PoseProvider (Riverpod) --> SkeletonPainter (CustomPainter overlay)
+poseStreamProvider (Riverpod) --> SkeletonPainter / GhostTrainerPainter
         |
         v
-ExerciseIntelligence (pure Dart, deterministic)
-  joint angles / velocity / alignment / phase state machine / rep events
-        |
+WorkoutController --> SquatEngine / PushUpEngine (pure Dart, deterministic)
+        |                joint angles / velocity / alignment / phase state machine
         v
-CoachEngine (policy rules + localized templates + optional LLM variation)
-        |
-        +--> VoiceService (bundled WAV assets, priority + cooldown)
-        +--> VisualAssistance (3D ghost + local demo video)
-        +--> WorkoutRepository (SQLite, AES-GCM encrypted payloads)
+CoachEngine (safety-first policy + cooldown + approved phrase ids)
+        +--> VoiceService (bundled WAV assets only)
+        +--> Visual learning (authored 3D ghost + local demo MP4)
+        +--> WorkoutStore (SQLite + AES-256-GCM encrypted payload envelope)
 ```
 
 ## Feature modules (`lib/features/`)
 
 | Module | Responsibility |
 |---|---|
-| `camera_calibration` | Visibility/lighting checks before a workout |
-| `home` | Greeting, today's plan, weekly progress, streak, start CTA |
-| `exercise_library` | Search/categories, exercise metadata and demos |
-| `camera_calibration` | Visibility/lighting checks; blocks workout start until landmarks ready |
-| `live_workout` | Camera + skeleton + ghost + HUD + controls |
-| `visual_learning` | Demo video, 3D avatar, slow motion, replay, joint highlights |
-| `summary` | Reps, sets, duration, technique observations, rest advice |
-| `progress` | History, weekly/monthly charts, personal records |
-| `settings` | Language, voice, model management, privacy, deletion |
-| `coach` | Policy engine, instruction selection, cooldown |
-| `exercise_intelligence` | Biomechanics and state machines (no Flutter imports) |
+| `onboarding`, `permissions`, `compatibility` | First-run explanation, real permission recovery, device/model readiness |
+| `camera_calibration` | Full-body visibility gate before a workout |
+| `home`, `plans`, `exercise_library`, `progress`, `summary` | Navigation, local plans, metadata, history, results |
+| `live_workout` | Awaited camera start, skeleton/ghost overlay, HUD, rest/finish/safety |
+| `workout` | `WorkoutController` state machine and rest screen |
+| `exercise_intelligence` | Biomechanics, deterministic squat/push-up engines, versioned events |
+| `coach` | Policy engine, priority, cooldown, visual demo mapping |
+| `voice` | Offline WAV playback, language switching, voice self-test screen |
+| `visual_learning` | Asset-driven 3D ghost interpolation and skeleton painter |
+| `models`, `local_ai`, `diagnostics`, `privacy`, `help`, `settings` | Model manager, honest feature status, native diagnostics, data controls |
 
 ## Core (`lib/core/`)
 
-- `platform/`: typed wrappers around MethodChannel/EventChannel contracts.
-- `storage/`: SQLite database + encrypted payload service.
-- `models/`: versioned event schemas (`PoseFrame`, `RepCompleted`, `FormCorrection`, ...).
-- `theme/`: dark/light premium fitness theme.
-- `l10n/`: 13-language catalogue; English + Hindi strings shipped in first build.
+- `platform/pose_channel.dart`: typed bridge; every native failure is data.
+- `platform/camera_session.dart`: serialized start/stop ownership queue.
+- `settings/app_settings.dart`: persisted language, voice, visualization,
+  onboarding, plan and explicit model-install consent.
+- `storage/workout_db.dart`: SQLite store and `PayloadCipher` boundary.
+- `models/`: manifest parsing, SHA-256 verification, explicit installer.
+- `l10n/strings.dart`: 13-language catalogue; full en/hi translations.
+- `theme/`: dark fitness theme.
 
 ## Native Android (`android/app/src/main/kotlin/...`)
 
-- `AiTrainerPlugin`: registers camera platform view, pose event channel, secure-crypto methods.
-- `CameraController`: CameraX `Preview` + `ImageAnalysis` lifecycle management.
-- `PoseProcessor`: MediaPipe `PoseLandmarker` in LIVE_STREAM mode, frame dropping, JSON emission.
-- `SecureCrypto`: Android Keystore AES-256/GCM key for encrypted SQLite payloads.
+- `AiTrainerPlugin`: channels, platform view, permission, lifecycle, diagnostics,
+  storage encryption, model registration.
+- `CameraController`: CameraX preview/analysis lifecycle; deferred attach; typed errors.
+- `PoseProcessor`: MediaPipe `LIVE_STREAM`, bundled-model checksum verification,
+  compact map emission.
+- `SecureCrypto`: Android Keystore AES-256-GCM.
+- `NativeContract`: pure constants shared with JVM unit tests.
 
 ## Native iOS (`ios/Runner/`)
 
-- `AiTrainerPlugin.swift`: mirror of Android contracts using AVFoundation and MediaPipeTasksVision.
-- `SecureCrypto.swift`: Keychain-backed AES-GCM key.
-- Source is prepared; compilation/signing requires macOS + Xcode (documented blocker).
+- `AiTrainerPlugin.swift`: AVFoundation + MediaPipe mirror of the Android
+  contract, with preview layer attached to the platform view and a separate
+  system-event stream handler. Source prepared; uncompiled on Linux.
 
-## State management
+## State and navigation
 
-Riverpod providers: `poseFrameProvider` (stream), `workoutControllerProvider` (Notifier),
-`coachInstructionProvider`, `settingsProvider`, `workoutHistoryProvider`.
-Navigation: GoRouter with guarded routes (calibration required before `/workout`).
+Riverpod: `poseStreamProvider`, `systemEventsProvider`,
+`workoutControllerProvider`, `settingsControllerProvider`, `voiceServiceProvider`,
+`cameraSessionProvider`, `modelManagerProvider`, `ghostClipProvider`.
+GoRouter: 19 routes, onboarding redirect, shell navigation for the four main
+tabs, immersive full-screen routes for camera/demo/settings sub-pages.
 
 ## Event schemas
 
-All events include `schema_version: 1` and monotonic `timestamp_ms`. See `docs/INTERNAL_APIS.md`.
-
-## Performance strategy
-
-- Native analyzer uses `STRATEGY_KEEP_ONLY_LATEST`; at most one in-flight pose inference.
-- UI receives at most 30 compact pose events/sec; CustomPainter repaints only overlay layer.
-- LLM, ASR and TTS engines are never loaded simultaneously with pose inference.
-- Thermal/low-memory signals downscale the analyzer and disable the ghost avatar.
+All native events include `schema_version: 1`; rep and form events are
+versioned and covered by `test/integration/platform_contract_test.dart`.
+See `docs/INTERNAL_APIS.md`.
