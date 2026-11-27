@@ -7,11 +7,29 @@ import 'package:flutter/material.dart';
 import '../exercise_intelligence/biomechanics.dart';
 
 const _connections = <List<int>>[
-  [0, 1], [1, 2], [2, 3], [3, 4],
-  [1, 5], [5, 6], [6, 7], [1, 8], [8, 9], [9, 10],
-  [0, 11], [0, 12], [11, 13], [13, 15], [12, 14], [14, 16],
-  [11, 23], [12, 24], [23, 24],
-  [23, 25], [25, 27], [24, 26], [26, 28],
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 4],
+  [1, 5],
+  [5, 6],
+  [6, 7],
+  [1, 8],
+  [8, 9],
+  [9, 10],
+  [0, 11],
+  [0, 12],
+  [11, 13],
+  [13, 15],
+  [12, 14],
+  [14, 16],
+  [11, 23],
+  [12, 24],
+  [23, 24],
+  [23, 25],
+  [25, 27],
+  [24, 26],
+  [26, 28],
 ];
 
 class SkeletonPainter extends CustomPainter {
@@ -53,7 +71,11 @@ class SkeletonPainter extends CustomPainter {
     for (var i = 0; i < frame.landmarks.length; i++) {
       final lm = frame.landmarks[i];
       if (lm.visibility < 0.35) continue;
-      canvas.drawCircle(toOffset(lm), 5.5, highlightJoints.contains(i) ? highlightPaint : jointPaint);
+      canvas.drawCircle(
+        toOffset(lm),
+        5.5,
+        highlightJoints.contains(i) ? highlightPaint : jointPaint,
+      );
     }
 
     if (showGhost) _drawGhost(canvas, size);
@@ -75,11 +97,14 @@ class SkeletonPainter extends CustomPainter {
       points.add(Offset(x * size.width + 40, lm.y * size.height + 12));
     }
     for (var i = 0; i + 1 < points.length; i += 2) {
-      if (i + 1 < points.length) canvas.drawLine(points[i], points[i + 1], ghostPaint);
+      if (i + 1 < points.length)
+        canvas.drawLine(points[i], points[i + 1], ghostPaint);
     }
   }
 
   @override
   bool shouldRepaint(covariant SkeletonPainter old) =>
-      old.frame != frame || old.mirrored != mirrored || old.showGhost != showGhost;
+      old.frame != frame ||
+      old.mirrored != mirrored ||
+      old.showGhost != showGhost;
 }
