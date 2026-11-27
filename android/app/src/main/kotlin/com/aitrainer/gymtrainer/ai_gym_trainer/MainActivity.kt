@@ -20,6 +20,26 @@ class MainActivity : FlutterActivity() {
         plugin?.onRequestPermissionsResult(requestCode, grantResults)
     }
 
+    override fun onPause() {
+        plugin?.onHostPause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        plugin?.onHostResume()
+    }
+
+    override fun onStop() {
+        plugin?.onHostStop()
+        super.onStop()
+    }
+
+    override fun onLowMemory() {
+        plugin?.onLowMemory()
+        super.onLowMemory()
+    }
+
     override fun onDestroy() {
         plugin?.close()
         super.onDestroy()
